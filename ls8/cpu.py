@@ -6,6 +6,9 @@ LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
+SP = 7
 
 class CPU:
     """Main CPU class."""
@@ -43,7 +46,6 @@ class CPU:
         with open(sys.argv[1]) as f:
             for line in f:
                 new_line = line.split('#')[0].strip()
-                print(new_line)
                 if new_line == '':
                     continue
                 else:
@@ -92,6 +94,7 @@ class CPU:
             IR = self.ram[self.pc]
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+            
             if IR == LDI:
                 self.register[operand_a] = operand_b
                 self.pc += 3
@@ -101,6 +104,15 @@ class CPU:
             elif IR == MUL:
                 self.register[operand_a] *= self.register[operand_b]
                 self.pc += 3
+            elif IR == PUSH:
+                self.register[SP] -= 1
+                self.ram_write(self.register[SP], self.register[operand_a])
+                self.pc += 2
+            elif IR == POP:
+                stack_value = self.ram_read(self.register[SP])
+                self.register[operand_a] = stack_value
+                self.register[SP] += 1
+                self.pc += 2
             elif IR == HLT:
                 running = False
             
