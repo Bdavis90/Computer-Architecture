@@ -8,6 +8,12 @@ HLT = 0b00000001
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 SP = 7
 
 class CPU:
@@ -18,6 +24,7 @@ class CPU:
         self.register = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
+        self.fl = 0b00000000
 
     def ram_read(self, pc):
         return self.ram[pc]
@@ -113,12 +120,39 @@ class CPU:
                 self.register[operand_a] = stack_value
                 self.register[SP] += 1
                 self.pc += 2
+            elif IR == CALL:
+                return_address = self.pc + 2
+                self.register[SP] -= 1
+                self.ram[self.register[SP]] = return_address
+                reg_num = self.ram[self.pc + 1]
+                dest_addr = self.ram[reg_num]
+                self.pc = dest_addr
+            elif IR == RET:
+                return_address = self.ram[self.register[SP]]
+                self.register[SP] += 1
+                self.pc = return_address
+            elif IR == CMP:
+                if self.register[operand_a] == self.register[operand_b]:
+                    self.fl = 0b00000001
+                if self.register[operand_a] > self.register[operand_b]:
+                    self.fl = 0b00000010
+                if self.register[operand_a] < self.register[operand_b]:
+                    self.fl = 0b00000100
+                self.pc += 3
+            elif IR == JMP:
+                self.pc = self.register[operand_a]
+            elif IR == JEQ:
+                address = self.register[operand_a]
+                if self.fl == 1:
+                    self.pc = address
+                else:
+                    self.pc += 2
+            elif IR == JNE:
+                address = self.register[operand_a]
+                if self.fl == 0:
+                    self.pc = address
+                else:
+                    self.pc += 2
             elif IR == HLT:
                 running = False
             
-
-
-
-        
-
-      
